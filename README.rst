@@ -6,7 +6,7 @@ client library to `SeatGeek <https://github.com/seatgeek/>`_'s `Sixpack <https:/
 a language-agnostic A/B testing framework.
 
 This is not a full-fledged client (it relies on ``sixpack-py`` for the actual connection); it's a wrapper
-to make using ``sixpack-py` more friendly and declarative.
+to make using ``sixpack-py`` more friendly and declarative.
 
 
 Install
