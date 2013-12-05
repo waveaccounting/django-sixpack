@@ -1,24 +1,12 @@
 django-sixpack
 ==========
 
-``django-sixpack`` is a django-friendly wrapper for `@seatgeek <https://github.com/seatgeek/>`_'s sixpack-py Sixpack client library.
+``django-sixpack`` is a Django-friendly wrapper for the `sixpack-py <https://github.com/seatgeek/sixpack-py>`_ 
+client library to `SeatGeek <https://github.com/seatgeek/>`_'s `Sixpack <https://github.com/seatgeek/sixpack>`_,
+a language-agnostic A/B testing framework.
 
-A plugin to help split up your tests runs across multiple machines.
-
-In an ideal world, test suites should be fast enough that they can 
-be run locally on a single machine without extra engineering. This 
-plugin is there to help when you can't make that to happen.
-
-This **won't** help you run tests in parallel on one machine in different 
-threads; that's what the built-in `multiprocess 
-<http://nose.readthedocs.org/en/latest/plugins/multiprocess.html>`_ plugin 
-is for.
-
-This **will** help you split up your test suites so that you can run the 
-suites on multiple machines and not have the same test run twice - think 
-Jenkins with the 
-`multijob <https://wiki.jenkins-ci.org/display/JENKINS/Multijob+Plugin>`_ 
-plugin, or CI services like `CircleCI <https://circleci.com/docs/parallel-manual-setup>`_.
+This is not a full-fledged client (it relies on ``sixpack-py`` for the actual connection); it's a wrapper
+to make using ``sixpack-py` more friendly and declarative.
 
 
 Install
@@ -26,47 +14,81 @@ Install
 
 .. code::
 
-   pip install nose-parallel
+   pip install djsixpack
 
 
 Usage
 -----
 
-On each machine:
+First, define a test somewhere:
 
-#. Export environment variables ``NODE_TOTAL`` (the number of machines on which the suite will be run) and and ``NODE_INDEX`` (the 0-based index of the current machine)
-#. Run nosetests with the ``--with-parallel`` flag
-#. Do something to join the results from all the machines back together
-
-For example, this is how we'd run nosetests on the second machine in a 
-four-machine testing cluster:
-
-.. code:: bash
-
-   NODE_TOTAL=4 NODE_INDEX=1 nosetests --with-parallel
+.. code:: python
    
+   from djsixpack.djsixpack import SixpackTest
    
-If you don't set those variables, ``nose-parallel`` will do the right thing and run all your tests. 
-The CircleCI versions of the environment variables (``CIRCLE_NODE_TOTAL`` and ``CIRCLE_NODE_INDEX``, 
-respectively) are also natively supported.
+   class ButtonColorTest(SixpackTest):
+      alternatives = (
+         'RED',
+         'BLUE'
+      )
+      
+If you go into the Sixpack web dashboard, you'll see this as a test called ``button_color``, with 
+the control being the alternative ``RED`` (the first alternative listed will be considered the control).
 
+When it's time to add a user to the test:
+
+.. code:: python
+   
+   expt = ButtonColorTest(request.user)
+   bucket = expt.participate()
+   
+   context = {}
+   if bucket == ButtonColorTest.RED:
+      context = {'color': '#FF0000'}
+   elif bucket == ButtonColorTest.BLUE:
+      context = {'color': '#0000FF'}
+      
+``SixpackTest.participate`` will return the alternative ``request.user`` is bucketed into - and all alternatives
+will be available as class properties.
+
+When instantiating a ``SixpackTest`` test, the only argument the constructor takes is the model instance
+which is used to represent the person seeing this test. By default, ``SixpackTest`` will use the instance's
+``pk`` attribute as the unique identifier to represent this person - but this can be overridden by setting the
+``unique_attr`` class property.
+
+For example, you could have a ``Business`` model class which represents a person, and it has a attribute called 
+``global_id`` which represents a cross-platform way of identifying a particular ``Business``. In that case, 
+you could do:
+
+.. code:: python
+   
+   from djsixpack.djsixpack import SixpackTest
+   
+   class ButtonColorTest(SixpackTest):
+      unique_attr = 'global_id'
+      alternatives = (
+         'RED',
+         'BLUE'
+      )
+
+At any point, you can check the ``SixpackTest.client_id`` property to see what's being used as the ``client_id``.
 
 License
 -------
 
-``nose-parallel`` is released under the MIT license.
+``django-sixpack`` is released under the MIT license.
 
 
 Contribute
 ----------
 
-- Check for open issues or open a fresh issue to start a discussion around a feature idea or a bug.
-- Fork the repository on GitHub to start making your changes to the master branch (or branch off of it).
-- Send a pull request and bug the maintainer until it gets merged and published.
-- Add yourself to the authors list in ``setup.py``
+- Check for open issues or open a fresh issue to start a discussion around a feature idea or a bug
+- Fork the repository on GitHub to start making your changes to the master branch (or branch off of it)
+- Send a pull request and bug the maintainer until it gets merged and published
+- Add yourself to the ``AUTHORS`` file
 
 
 Thanks To
 ---------
 
-- `@mahmoudimus <https://github.com/mahmoudimus>`_, whose `nose-timer <https://github.com/mahmoudimus/nose-timer>`_ plugin this is based off of
+- `SeatGeek <https://github.com/seatgeek/>`_, for being great

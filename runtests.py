@@ -6,15 +6,8 @@ from django.conf import settings
 
 if not settings.configured:
     settings_dict = dict(
-        INSTALLED_APPS=(
-			"djsixpack",
-        ),
-        DATABASES={
-            "default": {
-                "ENGINE": "django.db.backends.sqlite3",
-                "NAME": ":memory:"
-            }
-        },
+        INSTALLED_APPS=("djsixpack",),
+        DATABASES={"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"}},
     )
 
     settings.configure(**settings_dict)
@@ -23,7 +16,7 @@ if not settings.configured:
 def runtests(*test_args):
     if not test_args:
         test_args = ['djsixpack']
-    
+
     parent = os.path.dirname(os.path.abspath(__file__))
     sys.path.insert(0, parent)
 

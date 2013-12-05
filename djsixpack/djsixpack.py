@@ -35,15 +35,15 @@ class SixpackTest(object):
 
     def _get_session(self, user_agent=None, ip_address=None):
         session_kwargs = {
-                'options': {'host': self.host, 'timeout': self.timeout},
-                'params': {'ip_address': ip_address, 'user_agent': user_agent},
-                'client_id': self.client_id,
-                }
+            'options': {'host': self.host, 'timeout': self.timeout},
+            'params': {'ip_address': ip_address, 'user_agent': user_agent},
+            'client_id': self.client_id,
+        }
 
         return sixpack.Session(**session_kwargs)
 
     def _get_experiment_name(self):
-		# Converts CamelCase to snake_case and drops the trailing "_test"
+        # Converts CamelCase to snake_case and drops the trailing "_test"
         s1 = RE_FIRST_CAP.sub(r'\1_\2', self.__class__.__name__)
         name = RE_ALL_CAP.sub(r'\1_\2', s1).lower()
         return RE_TEST_NAME.sub('', name)
