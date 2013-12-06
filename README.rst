@@ -54,7 +54,7 @@ will be available as class properties.
 When instantiating a ``SixpackTest`` test, the only argument the constructor takes is the model instance
 which is used to represent the person seeing this test. By default, ``SixpackTest`` will use the instance's
 ``pk`` attribute as the unique identifier to represent this person - but this can be overridden by setting the
-``unique_attr`` class property.
+``unique_attr`` class attribute.
 
 For example, you could have a ``Business`` model class which represents a person, and it has a attribute called 
 ``global_id`` which represents a cross-platform way of identifying a particular ``Business``. In that case, 
