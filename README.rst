@@ -21,11 +21,10 @@ Configuration
 
 Set ``SIXPACK_HOST`` and (optionally) ``SIXPACK_TIMEOUT`` in your settings file. 
 
-If ``SIXPACK_HOST`` is unset, it will fall back to ``sixpack-py``'s default, which
-is ``http://localhost:5000``. If ``SIXPACK_HOST`` is set to ``None``, ``django-sixpack`` will
+If ``SIXPACK_HOST`` is unset, it will fall back to ``sixpack-py``'s default, which is ``http://localhost:5000``. If ``SIXPACK_HOST`` is set to ``None``, ``django-sixpack`` will
 operate in test mode, which means that the control alternative (the first one listed) will be
 returned for all ``participate`` calls, all ``convert`` calls will be successful, and the exertnal
-``sixpack`` server will not be contacted.
+sixpack server will not be contacted.
 
 Usage
 -----
