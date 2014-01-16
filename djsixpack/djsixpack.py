@@ -1,11 +1,15 @@
 import re
+import logging
 
 from sixpack import sixpack
 from django.conf import settings
+from requests.exceptions import RequestException
 
 RE_FIRST_CAP = re.compile('(.)([A-Z][a-z]+)')
 RE_ALL_CAP = re.compile('([a-z0-9])([A-Z])')
 RE_TEST_NAME = re.compile('_test$')
+
+logger = logging.getLogger('djsixpack')
 
 
 class AlternativesAttributeSetterMeta(type):
@@ -67,8 +71,14 @@ class SixpackTest(object):
 
         session = self._get_session(user_agent, ip_address)
         experiment_name = self._get_experiment_name()
-        resp = session.participate(experiment_name, self.alternatives, force)
-        return resp['alternative']['name']
+
+        try:
+            resp = session.participate(experiment_name, self.alternatives, force)
+        except RequestException:
+            logger.exception("Error while trying to .participate")
+            return self.alternatives[0]
+        else:
+            return resp['alternative']['name']
 
     def convert(self, kpi=None):
         if not self.host:
@@ -76,5 +86,10 @@ class SixpackTest(object):
 
         session = self._get_session()
         experiment_name = self._get_experiment_name()
-        resp = session.convert(experiment_name, kpi)
-        return resp['status'] == 'ok'
+        try:
+            resp = session.convert(experiment_name)
+        except RequestException:
+            logger.exception("Error while trying to .convert")
+            return False
+        else:
+            return resp['status'] == 'ok'
