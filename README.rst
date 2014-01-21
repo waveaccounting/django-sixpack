@@ -58,7 +58,7 @@ When it's time to add a user to the test:
       context = {'color': '#0000FF'}
       
 ``SixpackTest.participate`` will return the alternative ``request.user`` is bucketed into - and all alternatives
-will be available as class properties.
+will be available as class properties. 
 
 When instantiating a ``SixpackTest`` test, the only argument the constructor takes is the model instance
 which is used to represent the person seeing this test. By default, ``SixpackTest`` will use the instance's
@@ -82,6 +82,10 @@ you could do:
 
 At any point, you can check the ``SixpackTest.client_id`` property to see what's being used as the ``client_id``.
 
+If something ever goes wrong - a request times out, the ``sixpack`` server disappears, etc. - all ``participate`` 
+calls will return the control alternative, and all ``convert`` calls will seem successful (and we'll note this happend
+in the log).
+
 License
 -------
 
@@ -97,7 +101,7 @@ Contribute
 - Add yourself to the ``AUTHORS`` file
 
 
-Thanks To
----------
+Thanks
+------
 
 - `SeatGeek <https://github.com/seatgeek/>`_, for being great
