@@ -19,7 +19,7 @@ setup(
     test_suite='runtests.runtests',
     classifiers=(
         'Development Status :: 5 - Production/Stable',
-        'Intended Audience :: Django Developers',
+        'Framework :: Django',
         'Natural Language :: English',
         'Programming Language :: Python',
         'License :: OSI Approved :: BSD License',
