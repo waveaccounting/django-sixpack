@@ -14,7 +14,7 @@ Install
 
 .. code:: bash
 
-   pip install djsixpack
+   pip install django-sixpack
 
 Configuration
 -------------
