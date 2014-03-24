@@ -65,6 +65,8 @@ class SixpackTest(object):
     def participate(self, force=None, user_agent=None, ip_address=None):
         if not self.host:
             try:
+                if force in self.alternatives:
+                    return force
                 return self.alternatives[0]
             except TypeError:
                 raise ValueError('No alternatives defined')
