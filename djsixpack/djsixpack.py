@@ -76,6 +76,8 @@ class SixpackTest(object):
             resp = session.participate(experiment_name, self.alternatives, force)
         except RequestException:
             logger.exception("Error while trying to .participate")
+            if force in self.alternatives:
+                return force
             return self.alternatives[0]
         else:
             return resp['alternative']['name']
