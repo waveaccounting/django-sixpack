@@ -13,7 +13,7 @@ setup(
     url='https://github.com/waveaccounting/django-sixpack',
     license='LICENSE',
     description='A django-friendly wrapper for sixpack-py',
-    long_description=open('README.rst').read(),
+    long_description=open('README.md').read(),
     install_requires=install_reqs,
     tests_require=install_reqs + ["mock==1.0.1"],
     test_suite='runtests.runtests',
