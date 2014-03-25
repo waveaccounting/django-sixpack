@@ -1,4 +1,5 @@
-# django-sixpack [![Build Status](https://travis-ci.org/waveaccounting/django-sixpack.svg?branch=participate_RequestException_handling)](https://travis-ci.org/waveaccounting/django-sixpack)
+django-sixpack [![Build Status](https://travis-ci.org/waveaccounting/django-sixpack.svg?branch=master)](https://travis-ci.org/waveaccounting/django-sixpack)
+==============
 
 ``django-sixpack`` is a Django-friendly wrapper for the `sixpack-py <https://github.com/seatgeek/sixpack-py>`_ 
 client library to `SeatGeek <https://github.com/seatgeek/>`_'s `Sixpack <https://github.com/seatgeek/sixpack>`_,
