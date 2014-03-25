@@ -136,7 +136,7 @@ class ParticipateTest(TestCase):
 
         self.assertEqual(
             sp_mock.Session().convert.call_args_list,
-            [call('default', 'cats')]
+            [call('default')]
         )
 
 
