@@ -18,7 +18,7 @@ class ClientIdTest(TestCase):
         t = SixpackTest(Mock())
         t.unique_attr = None
 
-        with self.assertRaises(ValueError): 
+        with self.assertRaises(ValueError):
             t.client_id
 
     def test_client_id_no_usable_identifier(self):
@@ -37,6 +37,7 @@ class ParticipateTest(TestCase):
 
     def test_participate_errors_when_no_alternatives(self):
         mock_user = Mock(pk=10)
+
         class NoAltsTest(SixpackTest):
             alternatives = ()
 
@@ -45,6 +46,7 @@ class ParticipateTest(TestCase):
 
     def test_participate_returns_default_when_no_host_set(self):
         mock_user = Mock(pk=10)
+
         class DefaultTest(SixpackTest):
             alternatives = ('FIRST', 'SECOND')
 
@@ -56,20 +58,49 @@ class ParticipateTest(TestCase):
         self.assertEqual(alternative, 'FIRST')
         self.assertFalse(sp_mock.participate.called)
 
+    def test_participate_returns_force_when_no_host_set_and_force_in_alternatives(self):
+        mock_user = Mock(pk=10)
+
+        class DefaultTest(SixpackTest):
+            alternatives = ('FIRST', 'SECOND')
+
+        with patch('djsixpack.djsixpack.sixpack') as sp_mock:
+            with self.settings(SIXPACK_HOST=None):
+                expt = DefaultTest(mock_user)
+                alternative = expt.participate(force='SECOND')
+
+        self.assertEqual(alternative, 'SECOND')
+        self.assertFalse(sp_mock.participate.called)
+
+    def test_participate_returns_default_when_no_host_set_and_force_not_in_alternatives(self):
+        mock_user = Mock(pk=10)
+
+        class DefaultTest(SixpackTest):
+            alternatives = ('FIRST', 'SECOND')
+
+        with patch('djsixpack.djsixpack.sixpack') as sp_mock:
+            with self.settings(SIXPACK_HOST=None):
+                expt = DefaultTest(mock_user)
+                alternative = expt.participate(force='THIRD')
+
+        self.assertEqual(alternative, 'FIRST')
+        self.assertFalse(sp_mock.participate.called)
+
     def test_participate_calls_library(self):
         mock_user = Mock(pk=10)
+
         class DefaultTest(SixpackTest):
             alternatives = ('FIRST', 'SECOND')
 
         with patch('djsixpack.djsixpack.sixpack') as sp_mock:
             expt = DefaultTest(mock_user)
-            alternative = expt.participate()
+            expt.participate()
 
         self.assertEqual(
             sp_mock.Session.call_args_list,
             [call(
-                params={'ip_address': None, 'user_agent': None}, 
-                options={'host': sp_mock.SIXPACK_HOST, 'timeout': sp_mock.SIXPACK_TIMEOUT}, 
+                params={'ip_address': None, 'user_agent': None},
+                options={'host': sp_mock.SIXPACK_HOST, 'timeout': sp_mock.SIXPACK_TIMEOUT},
                 client_id=10
             )]
         )
@@ -78,11 +109,11 @@ class ParticipateTest(TestCase):
             [call('default', ('FIRST', 'SECOND'), None)]
         )
 
-
         class ConvertTest(TestCase):
 
             def test_convert_doesnt_call_library_when_no_host(self):
-                mock_user = Mock(pk=10)
+                Mock(pk=10)
+
         class DefaultTest(SixpackTest):
             alternatives = ('FIRST', 'SECOND')
 
@@ -95,6 +126,7 @@ class ParticipateTest(TestCase):
 
     def test_convert_calls_library(self):
         mock_user = Mock(pk=10)
+
         class DefaultTest(SixpackTest):
             alternatives = ('FIRST', 'SECOND')
 
@@ -103,9 +135,10 @@ class ParticipateTest(TestCase):
             expt.convert(kpi='cats')
 
         self.assertEqual(
-                sp_mock.Session().convert.call_args_list,
-                [call('default', 'cats')]
-                )
+            sp_mock.Session().convert.call_args_list,
+            [call('default')]
+        )
+
 
 class ExperimentNameTest(TestCase):
 
@@ -123,6 +156,7 @@ class ExperimentNameTest(TestCase):
         expt = CompoundNameTest(Mock)
         self.assertNotIn('_test', expt._get_experiment_name())
 
+
 class AlternativesSetAsAttributesTest(TestCase):
 
     def test_alternatives_are_set_as_attributes(self):
@@ -131,5 +165,3 @@ class AlternativesSetAsAttributesTest(TestCase):
 
         self.assertTrue(hasattr(AltTest, 'FIRST'))
         self.assertTrue(hasattr(AltTest, 'SECOND'))
-
-

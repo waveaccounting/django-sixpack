@@ -65,6 +65,8 @@ class SixpackTest(object):
     def participate(self, force=None, user_agent=None, ip_address=None):
         if not self.host:
             try:
+                if force in self.alternatives:
+                    return force
                 return self.alternatives[0]
             except TypeError:
                 raise ValueError('No alternatives defined')
@@ -76,6 +78,8 @@ class SixpackTest(object):
             resp = session.participate(experiment_name, self.alternatives, force)
         except RequestException:
             logger.exception("Error while trying to .participate")
+            if force in self.alternatives:
+                return force
             return self.alternatives[0]
         else:
             return resp['alternative']['name']

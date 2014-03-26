@@ -1,6 +1,7 @@
 django-sixpack
 ==============
 
+
 ``django-sixpack`` is a Django-friendly wrapper for the `sixpack-py <https://github.com/seatgeek/sixpack-py>`_ 
 client library to `SeatGeek <https://github.com/seatgeek/>`_'s `Sixpack <https://github.com/seatgeek/sixpack>`_,
 a language-agnostic A/B testing framework.
