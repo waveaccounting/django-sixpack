@@ -92,8 +92,8 @@ class SixpackTest(object):
         experiment_name = self._get_experiment_name()
         try:
             resp = session.convert(experiment_name)
-        except RequestException:
-            logger.exception("Error while trying to .convert")
+        except RequestException as e:
+            logger.exception("Error while trying to .convert: {}".format(e)
             return False
         else:
             return resp['status'] == 'ok'
