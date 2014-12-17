@@ -87,6 +87,11 @@ If something ever goes wrong - a request times out, the ``sixpack`` server disap
 calls will return the control alternative, and all ``convert`` calls will seem successful (and we'll note this happend
 in the log).
 
+Suported Versions
+-----------------
+
+``django-sixpack`` will work with all version of Django >= 1.4, however the test suite requires Django >= 1.6.
+
 License
 -------
 
