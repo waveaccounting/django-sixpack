@@ -93,7 +93,7 @@ class SixpackTest(object):
         try:
             resp = session.convert(experiment_name)
         except RequestException as e:
-            logger.exception("Error while trying to .convert: {}".format(e)
+            logger.exception("Error while trying to .convert: {err}".format(err=e))
             return False
         else:
             return resp['status'] == 'ok'
