@@ -86,6 +86,20 @@ class ParticipateTest(TestCase):
         self.assertEqual(alternative, 'FIRST')
         self.assertFalse(sp_mock.participate.called)
 
+    def test_participate_returns_and_saves_local(self):
+        mock_user = Mock(pk=10)
+
+        class DefaultTest(SixpackTest):
+            alternatives = ('FIRST', 'SECOND')
+
+        with patch('djsixpack.djsixpack.SixpackParticipant') as sixpack_local:
+            with self.settings(SIXPACK_HOST=None):
+                expt = DefaultTest(mock_user, local=True)
+                alternative = expt.participate(force='SECOND')
+
+        self.assertEqual(alternative, 'SECOND')
+        self.assertFalse(sixpack_local.get_or_create.called)
+
     def test_participate_calls_library(self):
         mock_user = Mock(pk=10)
 
@@ -106,7 +120,7 @@ class ParticipateTest(TestCase):
         )
         self.assertEqual(
             sp_mock.Session.return_value.participate.call_args_list,
-            [call('default', ('FIRST', 'SECOND'), None)]
+            [call('default', ('FIRST', 'SECOND'), force=None, prefetch=False)]
         )
 
         class ConvertTest(TestCase):

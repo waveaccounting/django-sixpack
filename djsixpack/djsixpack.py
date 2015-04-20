@@ -5,6 +5,8 @@ from sixpack import sixpack
 from django.conf import settings
 from requests.exceptions import RequestException
 
+from .models import SixpackParticipant
+
 RE_FIRST_CAP = re.compile('(.)([A-Z][a-z]+)')
 RE_ALL_CAP = re.compile('([a-z0-9])([A-Z])')
 RE_TEST_NAME = re.compile('_test$')
@@ -27,11 +29,14 @@ class SixpackTest(object):
     timeout = None
     control = None
     alternatives = None
+    local = False
+    sixpack = True
 
-    def __init__(self, instance):
+    def __init__(self, instance, local=False):
         self._instance = instance
         self.host = self.host or getattr(settings, 'SIXPACK_HOST', sixpack.SIXPACK_HOST)
         self.timeout = self.timeout or getattr(settings, 'SIXPACK_TIMEOUT', sixpack.SIXPACK_TIMEOUT)
+        self.local = local
 
     @property
     def client_id(self):
@@ -62,7 +67,7 @@ class SixpackTest(object):
 
         return client_id
 
-    def participate(self, force=None, user_agent=None, ip_address=None):
+    def participate(self, force=None, user_agent=None, ip_address=None, prefetch=False):
         if not self.host:
             try:
                 if force in self.alternatives:
@@ -73,16 +78,26 @@ class SixpackTest(object):
 
         session = self._get_session(user_agent, ip_address)
         experiment_name = self._get_experiment_name()
+        chosen_alternative = None
+
+        if self.local and not self.sixpack:
+            prefetch = True
 
         try:
-            resp = session.participate(experiment_name, self.alternatives, force)
+            resp = session.participate(experiment_name, self.alternatives, force=force, prefetch=prefetch)
         except RequestException:
             logger.exception("Error while trying to .participate")
             if force in self.alternatives:
-                return force
-            return self.alternatives[0]
+                chosen_alternative = force
+            else:
+                chosen_alternative = self.alternatives[0]
         else:
-            return resp['alternative']['name']
+            chosen_alternative = resp['alternative']['name']
+
+        if self.local:
+            SixpackParticipant.objects.get_or_create(unique_attr=self.client_id, experiment_name=experiment_name, bucket=chosen_alternative)
+
+        return chosen_alternative
 
     def convert(self, kpi=None):
         if not self.host:
@@ -92,8 +107,17 @@ class SixpackTest(object):
         experiment_name = self._get_experiment_name()
         try:
             resp = session.convert(experiment_name)
+
+            if self.local:
+                try:
+                    participant = SixpackParticipant.objects.get(unique_attr=self.client_id, experiment_name=experiment_name)
+                    participant.convert = True
+                    participant.save()
+                except SixpackParticipant.DoesNotExist:
+                    pass
+
         except RequestException as e:
-            logger.exception("Error while trying to .convert: {err}".format(err=e))
+            logger.exception("Error while trying to .convert: %s", e)
             return False
         else:
             return resp['status'] == 'ok'

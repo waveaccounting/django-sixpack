@@ -87,6 +87,18 @@ If something ever goes wrong - a request times out, the ``sixpack`` server disap
 calls will return the control alternative, and all ``convert`` calls will seem successful (and we'll note this happend
 in the log).
 
+-----------------
+Tracking Locally
+-----------------
+
+By passing in the argument `local` in the SixpackTest constructor you can telldjango-sixpack to create a convertable db record for each participant.
+
+.. code:: python
+   
+   experiment = ButtonColorTest(local=True)
+
+Make sure you run a migration for the django-sixpack's `SixpackParticipant` model.
+
 Suported Versions
 -----------------
 
