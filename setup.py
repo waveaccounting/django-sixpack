@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-install_reqs = ["Django>=1.4"]
+install_reqs = ["Django>=1.4", "sixpack-client==1.1.1"]
 
 setup(
     name='django-sixpack',
@@ -15,7 +15,6 @@ setup(
     description='A django-friendly wrapper for sixpack-py',
     long_description=open('README.rst').read(),
     install_requires=install_reqs,
-    dependency_links=["https://github.com/seatgeek/sixpack-py/archive/master.zip"],
     tests_require=install_reqs + ["mock==1.0.1"],
     test_suite='runtests.runtests',
     classifiers=(
