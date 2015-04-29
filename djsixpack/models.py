@@ -4,6 +4,7 @@ from django.db import models
 class SixpackParticipant(models.Model):
     """
     A model that contains fields relating to a sixpack experiment participant.
+
     """
     experiment_name = models.CharField(max_length=255, db_index=True)
     unique_attr = models.CharField(max_length=255, db_index=True)

@@ -112,10 +112,11 @@ class SixpackTest(object):
             if self.local:
                 try:
                     participant = SixpackParticipant.objects.get(unique_attr=self.client_id, experiment_name=experiment_name)
-                    participant.convert = True
-                    participant.save()
                 except SixpackParticipant.DoesNotExist:
                     pass
+                else:
+                    participant.convert = True
+                    participant.save()
 
         except RequestException as e:
             logger.exception("Error while trying to .convert: %s", e)
