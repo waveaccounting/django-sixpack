@@ -91,13 +91,19 @@ in the log).
 Tracking Locally
 -----------------
 
-By passing in the argument `local` in the SixpackTest constructor you can telldjango-sixpack to create a convertable db record for each participant.
+By passing in the argument `local` in the SixpackTest constructor you can tell django-sixpack to create a convertable db record for each participant.
 
 .. code:: python
    
    experiment = ButtonColorTest(local=True)
 
 Make sure you run a migration for the django-sixpack's `SixpackParticipant` model.
+
+You may also choose to track only locally by passing in `sixpack=False` to the test constructor.
+
+.. code:: python
+   
+   experiment = ButtonColorTest(local=True, sixpack=False)
 
 Suported Versions
 -----------------
