@@ -32,11 +32,12 @@ class SixpackTest(object):
     local = False
     sixpack = True
 
-    def __init__(self, instance, local=False):
+    def __init__(self, instance, local=False, sixpack=True):
         self._instance = instance
         self.host = self.host or getattr(settings, 'SIXPACK_HOST', sixpack.SIXPACK_HOST)
         self.timeout = self.timeout or getattr(settings, 'SIXPACK_TIMEOUT', sixpack.SIXPACK_TIMEOUT)
         self.local = local
+        self.local = sixpack
 
     @property
     def client_id(self):
