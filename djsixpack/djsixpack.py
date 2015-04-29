@@ -30,14 +30,14 @@ class SixpackTest(object):
     control = None
     alternatives = None
     local = False
-    sixpack = True
+    server = True
 
-    def __init__(self, instance, local=False, sixpack=True):
+    def __init__(self, instance, local=False, server=True):
         self._instance = instance
         self.host = self.host or getattr(settings, 'SIXPACK_HOST', sixpack.SIXPACK_HOST)
         self.timeout = self.timeout or getattr(settings, 'SIXPACK_TIMEOUT', sixpack.SIXPACK_TIMEOUT)
         self.local = local
-        self.local = sixpack
+        self.server = server
 
     @property
     def client_id(self):
@@ -68,6 +68,13 @@ class SixpackTest(object):
 
         return client_id
 
+    def get_participant_bucket(self):
+        try:
+            participant = SixpackParticipant.objects.get(unique_attr=self.client_id, experiment_name=self._get_experiment_name())
+        except SixpackParticipant.DoesNotExist:
+            return None
+        return participant.bucket
+
     def participate(self, force=None, user_agent=None, ip_address=None, prefetch=False):
         if not self.host:
             try:
@@ -81,7 +88,7 @@ class SixpackTest(object):
         experiment_name = self._get_experiment_name()
         chosen_alternative = None
 
-        if self.local and not self.sixpack:
+        if self.local and not self.server:
             prefetch = True
 
         try:
