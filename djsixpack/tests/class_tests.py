@@ -86,18 +86,30 @@ class ParticipateTest(TestCase):
         self.assertEqual(alternative, 'FIRST')
         self.assertFalse(sp_mock.participate.called)
 
+    @patch('djsixpack.djsixpack.SixpackTest._get_session')
     @patch('djsixpack.djsixpack.SixpackParticipant.objects.get_or_create')
-    def test_participate_returns_and_saves_local(self, mock_get_or_create):
+    def test_participate_returns_and_saves_local(self, mock_get_or_create, mock_get_session):
         mock_user = Mock(pk=10)
 
         class DefaultTest(SixpackTest):
             alternatives = ('FIRST', 'SECOND')
 
-        expt = DefaultTest(mock_user, local=True)
-        alternative = expt.participate(force='SECOND')
+        class MockSession(object):
+            def participate(self, experiment_name, alternatives, force, prefetch):
+                return {
+                    'alternative': {'name': 'SECOND'}
+                }
 
-        self.assertEqual(alternative, 'SECOND')
-        self.assertTrue(mock_get_or_create.objects.get_or_create.called)
+        mock_session = MockSession()
+        mock_get_session.return_value = mock_session
+
+        with patch.object(MockSession, 'participate') as mock_participate:
+            expt = DefaultTest(mock_user, local=True)
+            expt.participate(force='SECOND')
+            self.assertEqual(mock_participate.call_args[1]['force'], 'SECOND')
+            self.assertEqual(mock_participate.call_args[1]['prefetch'], False)
+
+        self.assertTrue(mock_get_or_create.called)
 
     @patch('djsixpack.djsixpack.SixpackTest._get_session')
     @patch('djsixpack.djsixpack.SixpackParticipant.objects.get_or_create')
@@ -118,6 +130,7 @@ class ParticipateTest(TestCase):
 
         with patch.object(MockSession, 'participate') as mock_participate:
             expt = DefaultTest(mock_user, local=True, server=False)
+            expt.participate(force='SECOND')
             self.assertEqual(mock_participate.call_args[0][0], expt._get_experiment_name())
             self.assertEqual(mock_participate.call_args[0][1], expt.alternatives)
             self.assertEqual(mock_participate.call_args[1]['force'], 'SECOND')
