@@ -95,10 +95,30 @@ class ParticipateTest(TestCase):
         with patch('djsixpack.djsixpack.SixpackParticipant') as sixpack_local:
             with self.settings(SIXPACK_HOST=None):
                 expt = DefaultTest(mock_user, local=True)
-                alternative = expt.participate(force='SECOND')
+                session = expt._get_session()
+                with patch(session.participate) as session_mock:
+                    alternative = expt.participate(force='SECOND')
+                    session_mock.assert_called_with(expt._get_experiment_name, expt.alternatives, force='SECOND', prefetch=False)
 
         self.assertEqual(alternative, 'SECOND')
-        self.assertFalse(sixpack_local.get_or_create.called)
+        self.assertTrue(sixpack_local.get_or_create.called)
+
+    def test_participate_returns_and_saves_local_no_sixpack(self):
+        mock_user = Mock(pk=10)
+
+        class DefaultTest(SixpackTest):
+            alternatives = ('FIRST', 'SECOND')
+
+        with patch('djsixpack.SixpackParticipant') as sixpack_local:
+            with self.settings(SIXPACK_HOST=None):
+                expt = DefaultTest(mock_user, local=True, sixpack=False)
+                session = expt._get_session()
+                with patch(session.participate) as session_mock:
+                    alternative = expt.participate(force='SECOND')
+                    session_mock.assert_called_with(expt._get_experiment_name, expt.alternatives, force='SECOND', prefetch=True)
+
+        self.assertEqual(alternative, 'SECOND')
+        self.assertTrue(sixpack_local.get_or_create.called)
 
     def test_participate_calls_library(self):
         mock_user = Mock(pk=10)
