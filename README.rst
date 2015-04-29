@@ -103,7 +103,7 @@ You may also choose to track only locally by passing in `sixpack=False` to the t
 
 .. code:: python
    
-   experiment = ButtonColorTest(local=True, sixpack=False)
+   experiment = ButtonColorTest(local=True, server=False)
 
 *Make sure you run a migration for the django-sixpack's `SixpackParticipant` model.*
 
