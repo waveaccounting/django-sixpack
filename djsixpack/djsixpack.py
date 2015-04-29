@@ -75,8 +75,8 @@ class SixpackTest(object):
             return None
         return participant.bucket
 
-    def participate(self, force=None, user_agent=None, ip_address=None, prefetch=False):
-        if not self.host:
+    def participate(self, force=None, user_agent=None, ip_address=None, prefetch=False, bucket=None):
+        if not self.host and not self.local:
             try:
                 if force in self.alternatives:
                     return force
@@ -86,7 +86,7 @@ class SixpackTest(object):
 
         session = self._get_session(user_agent, ip_address)
         experiment_name = self._get_experiment_name()
-        chosen_alternative = None
+        chosen_alternative = bucket
 
         if self.local and not self.server:
             prefetch = True
@@ -101,9 +101,9 @@ class SixpackTest(object):
                 chosen_alternative = self.alternatives[0]
         else:
             chosen_alternative = resp['alternative']['name']
-
-        if self.local:
-            SixpackParticipant.objects.get_or_create(unique_attr=self.client_id, experiment_name=experiment_name, bucket=chosen_alternative)
+        finally:
+            if self.local:
+                SixpackParticipant.objects.get_or_create(unique_attr=self.client_id, experiment_name=experiment_name, bucket=chosen_alternative)
 
         return chosen_alternative
 
