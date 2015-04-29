@@ -92,6 +92,7 @@ Tracking Locally
 -----------------
 
 By passing in the argument `local` in the SixpackTest constructor you can tell django-sixpack to create a convertible db record for each participant.
+This feature is useful when you want to pull information on an existing participant which is unavailble through the standard Sixpack API.
 
 .. code:: python
    

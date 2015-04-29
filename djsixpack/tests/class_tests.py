@@ -107,7 +107,7 @@ class ParticipateTest(TestCase):
             expt = DefaultTest(mock_user, local=True)
             expt.participate(force='SECOND')
             self.assertEqual(mock_participate.call_args[1]['force'], 'SECOND')
-            self.assertEqual(mock_participate.call_args[1]['prefetch'], False)
+            self.assertFalse(mock_participate.call_args[1]['prefetch'])
 
         self.assertTrue(mock_get_or_create.called)
 
@@ -134,7 +134,7 @@ class ParticipateTest(TestCase):
             self.assertEqual(mock_participate.call_args[0][0], expt._get_experiment_name())
             self.assertEqual(mock_participate.call_args[0][1], expt.alternatives)
             self.assertEqual(mock_participate.call_args[1]['force'], 'SECOND')
-            self.assertEqual(mock_participate.call_args[1]['prefetch'], True)
+            self.assertTrue(mock_participate.call_args[1]['prefetch'])
 
         self.assertFalse(mock_get_or_create.objects.get_or_create.called)
 
