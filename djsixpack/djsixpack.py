@@ -5,7 +5,7 @@ from sixpack import sixpack
 from django.conf import settings
 from requests.exceptions import RequestException
 
-from .models import SixpackParticipant
+from models import SixpackParticipant
 
 RE_FIRST_CAP = re.compile('(.)([A-Z][a-z]+)')
 RE_ALL_CAP = re.compile('([a-z0-9])([A-Z])')
