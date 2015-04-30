@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-install_reqs = ["Django>=1.4", "sixpack-client==1.1.1"]
+install_reqs = ['Django>=1.4', 'sixpack-client==1.1.1', 'South=>0.8.4']
 
 setup(
     name='django-sixpack',
