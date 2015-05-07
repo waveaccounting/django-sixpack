@@ -92,7 +92,7 @@ class SixpackTest(object):
             prefetch = True
 
         try:
-            resp = session.participate(experiment_name, self.alternatives, force=force, prefetch=prefetch)
+            resp = session.participate(experiment_name, self.alternatives, force=force, prefetch=prefetch, bucket=bucket)
         except RequestException:
             logger.exception("Error while trying to .participate")
             if force in self.alternatives:
