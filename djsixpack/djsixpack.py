@@ -32,12 +32,14 @@ class SixpackTest(object):
     local = False
     server = True
 
-    def __init__(self, instance, local=False, server=True):
+    def __init__(self, instance, local=None, server=None):
         self._instance = instance
         self.host = self.host or getattr(settings, 'SIXPACK_HOST', sixpack.SIXPACK_HOST)
         self.timeout = self.timeout or getattr(settings, 'SIXPACK_TIMEOUT', sixpack.SIXPACK_TIMEOUT)
-        self.local = local
-        self.server = server
+        if local is not None:
+            self.local = local
+        if server is not None:
+            self.server = server
 
     @property
     def client_id(self):
@@ -122,7 +124,7 @@ class SixpackTest(object):
                 except SixpackParticipant.DoesNotExist:
                     pass
                 else:
-                    participant.convert = True
+                    participant.converted = True
                     participant.save()
 
         except RequestException as e:
