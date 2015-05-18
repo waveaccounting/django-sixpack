@@ -104,8 +104,14 @@ class SixpackTest(object):
         else:
             chosen_alternative = resp['alternative']['name']
         finally:
-            if self.local:
-                SixpackParticipant.objects.get_or_create(unique_attr=self.client_id, experiment_name=experiment_name, bucket=chosen_alternative)
+            if self.local and chosen_alternative:
+                try:
+                    SixpackParticipant.objects.get_or_create(unique_attr=self.client_id, experiment_name=experiment_name, bucket=chosen_alternative)
+                except SixpackParticipant.MultipleObjectsReturned:
+                    # clean up duplicate entries
+                    duplicates = SixpackParticipant.objects.filter(unique_attr=self.client_id, experiment_name=experiment_name, bucket=chosen_alternative)
+                    for dup in duplicates[1:]:
+                        dup.delete()
 
         return chosen_alternative
 
@@ -119,11 +125,9 @@ class SixpackTest(object):
             resp = session.convert(experiment_name)
 
             if self.local:
-                try:
-                    participant = SixpackParticipant.objects.get(unique_attr=self.client_id, experiment_name=experiment_name)
-                except SixpackParticipant.DoesNotExist:
-                    pass
-                else:
+                participant_exists = SixpackParticipant.objects.filter(unique_attr=self.client_id, experiment_name=experiment_name).exists()
+                if participant_exists:
+                    participant = SixpackParticipant.objects.filter(unique_attr=self.client_id, experiment_name=experiment_name)[0]
                     participant.converted = True
                     participant.save()
 
