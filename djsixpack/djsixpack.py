@@ -75,6 +75,12 @@ class SixpackTest(object):
             participant = SixpackParticipant.objects.get(unique_attr=self.client_id, experiment_name=self._get_experiment_name())
         except SixpackParticipant.DoesNotExist:
             return None
+        except SixpackParticipant.MultipleObjectsReturned:
+            # clean up duplicate entries
+            duplicates = SixpackParticipant.objects.filter(unique_attr=self.client_id, experiment_name=self._get_experiment_name())
+            for dup in duplicates[1:]:
+                dup.delete()
+            return duplicates[0].bucket
         return participant.bucket
 
     def participate(self, force=None, user_agent=None, ip_address=None, prefetch=False, bucket=None):
