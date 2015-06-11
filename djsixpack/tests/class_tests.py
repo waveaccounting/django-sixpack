@@ -160,7 +160,7 @@ class ParticipateTest(TestCase):
         )
         self.assertEqual(
             sp_mock.Session.return_value.participate.call_args_list,
-            [call('default', ('FIRST', 'SECOND'), force=None, prefetch=False)]
+            [call('default', ('FIRST', 'SECOND'), force=None, bucket=None, prefetch=False)]
         )
 
         class ConvertTest(TestCase):
@@ -258,3 +258,6 @@ class GetParticipantBucketTest(TestCase):
         SixpackParticipantFactory(experiment_name='get_bucket', unique_attr=10, bucket='SECOND')
 
         self.assertEquals(expt.get_participant_bucket(), 'FIRST')
+
+        record_count = SixpackParticipant.objects.filter(experiment_name='get_bucket', unique_attr=10).count()
+        self.assertEquals(record_count, 1)
