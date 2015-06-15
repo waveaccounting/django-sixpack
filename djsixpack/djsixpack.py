@@ -60,6 +60,12 @@ class SixpackTest(object):
         name = RE_ALL_CAP.sub(r'\1_\2', s1).lower()
         return RE_TEST_NAME.sub('', name)
 
+    def _delete_duplicates(self, experiment_name):
+        # Check for duplicate records and delete them.
+        duplicates = SixpackParticipant.objects.filter(unique_attr=self.client_id, experiment_name=experiment_name).order_by('id')
+        for dup in duplicates[1:]:
+            dup.delete()
+
     def get_client_id(self, instance):
         if not self.unique_attr:
             raise ValueError('Need a unique_attr to compute the client ID')
@@ -111,13 +117,17 @@ class SixpackTest(object):
             chosen_alternative = resp['alternative']['name']
         finally:
             if self.local and chosen_alternative:
-                try:
-                    SixpackParticipant.objects.get_or_create(unique_attr=self.client_id, experiment_name=experiment_name, bucket=chosen_alternative)
-                except SixpackParticipant.MultipleObjectsReturned:
-                    # clean up duplicate entries
-                    duplicates = SixpackParticipant.objects.filter(unique_attr=self.client_id, experiment_name=experiment_name, bucket=chosen_alternative)
-                    for dup in duplicates[1:]:
-                        dup.delete()
+
+                # Record the bucket in the database if one doesn't already exist.
+                if not SixpackParticipant.objects.filter(unique_attr=self.client_id, experiment_name=experiment_name).exists():
+                    try:
+                        SixpackParticipant.objects.get_or_create(unique_attr=self.client_id, experiment_name=experiment_name, bucket=chosen_alternative)
+                    except SixpackParticipant.MultipleObjectsReturned:
+                        self._delete_duplicates(experiment_name)
+
+                # Scan and remove duplicates.
+                else:
+                    self._delete_duplicates(experiment_name)
 
         return chosen_alternative
 
