@@ -111,13 +111,15 @@ class SixpackTest(object):
             chosen_alternative = resp['alternative']['name']
         finally:
             if self.local and chosen_alternative:
-                try:
+
+                # Record the bucket in the database if one doesn't already exist.
+                if not SixpackParticipant.objects.filter(unique_attr=self.client_id, experiment_name=experiment_name).exists():
                     SixpackParticipant.objects.get_or_create(unique_attr=self.client_id, experiment_name=experiment_name, bucket=chosen_alternative)
-                except SixpackParticipant.MultipleObjectsReturned:
-                    # clean up duplicate entries
-                    duplicates = SixpackParticipant.objects.filter(unique_attr=self.client_id, experiment_name=experiment_name, bucket=chosen_alternative)
-                    for dup in duplicates[1:]:
-                        dup.delete()
+
+                # Check for duplicate records and delete them.
+                duplicates = SixpackParticipant.objects.filter(unique_attr=self.client_id, experiment_name=experiment_name).order_by('id')
+                for dup in duplicates[1:]:
+                    dup.delete()
 
         return chosen_alternative
 

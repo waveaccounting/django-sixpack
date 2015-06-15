@@ -193,6 +193,37 @@ class ParticipateTest(TestCase):
             [call('default')]
         )
 
+    def test_participate_is_called_twice_for_local_test(self):
+        mock_user = Mock(pk=10)
+
+        class DefaultTest(SixpackTest):
+            alternatives = ('FIRST', 'SECOND')
+            local = True
+
+        class MockSession1(object):
+            def participate(self, experiment_name, alternatives, force, prefetch, bucket):
+                return {
+                    'alternative': {'name': 'SECOND'}
+                }
+        mock_session1 = MockSession1()
+
+        class MockSession2(object):
+            def participate(self, experiment_name, alternatives, force, prefetch, bucket):
+                return {
+                    'alternative': {'name': 'FIRST'}
+                }
+        mock_session2 = MockSession2()
+
+        with patch('djsixpack.djsixpack.sixpack'):
+            with self.settings(SIXPACK_HOST=None):
+                expt = DefaultTest(mock_user)
+                with patch.object(SixpackTest, '_get_session', return_value=mock_session1):
+                    expt.participate(force='SECOND', bucket='SECOND')
+                with patch.object(SixpackTest, '_get_session', return_value=mock_session2):
+                    expt.participate(force='FIRST', bucket='FIRST')
+
+        self.assertEquals(SixpackParticipant.objects.all().count(), 1)
+
 
 class ExperimentNameTest(TestCase):
 
