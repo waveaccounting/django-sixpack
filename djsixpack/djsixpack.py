@@ -127,7 +127,6 @@ class SixpackTest(object):
         if not self.host:
             return True
 
-        import ipdb; ipdb.set_trace()
         session = self._get_session()
         experiment_name = self._get_experiment_name()
         try:
