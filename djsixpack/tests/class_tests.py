@@ -172,10 +172,9 @@ class ParticipateTest(TestCase):
 
         with patch.object(SixpackTest, '_get_session', return_value=mock_session):
             expt = DefaultTest(mock_user)
-            bucket = expt.participate(bucket='SECOND')
+            expt.participate()
 
-        self.assertEquals(bucket, 'SECOND')
-        self.assertTrue(SixpackParticipant.objects.filter(unique_attr=10, experiment_name='default', bucket='SECOND').exists())
+        self.assertTrue(SixpackParticipant.objects.filter(unique_attr=10, experiment_name='default').exists())
 
     def test_participate_is_called_twice_for_local_test(self):
         mock_user = Mock(pk=10)
@@ -187,7 +186,7 @@ class ParticipateTest(TestCase):
         class MockSession1(object):
             def participate(self, experiment_name, alternatives, force, prefetch, bucket):
                 return {
-                    'alternative': {'name': 'SECOND'}
+                    'alternative': {'name': 'FIRST'}
                 }
         mock_session1 = MockSession1()
 

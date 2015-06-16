@@ -125,7 +125,7 @@ class SixpackTest(object):
                     try:
                         obj, created = SixpackParticipant.objects.get_or_create(unique_attr=self.client_id, experiment_name=experiment_name)
                         if created:
-                            obj.bucket = bucket
+                            obj.bucket = chosen_alternative
                             obj.save()
 
                     # Catch the possible race condition from get_or_create().
