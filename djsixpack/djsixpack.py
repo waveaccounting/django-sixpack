@@ -116,7 +116,9 @@ class SixpackTest(object):
         else:
             chosen_alternative = resp['alternative']['name']
         finally:
-            if self.local and chosen_alternative:
+
+            # Don't record participation if force is set (see https://github.com/seatgeek/sixpack#arguments).
+            if not force and self.local and chosen_alternative:
 
                 # Record the bucket in the database if one doesn't already exist.
                 if not SixpackParticipant.objects.filter(unique_attr=self.client_id, experiment_name=experiment_name).exists():
