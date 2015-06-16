@@ -116,12 +116,20 @@ class SixpackTest(object):
         else:
             chosen_alternative = resp['alternative']['name']
         finally:
-            if self.local and chosen_alternative:
+
+            # Don't record participation if force is set (see https://github.com/seatgeek/sixpack#arguments).
+            if not force and self.local and chosen_alternative:
 
                 # Record the bucket in the database if one doesn't already exist.
                 if not SixpackParticipant.objects.filter(unique_attr=self.client_id, experiment_name=experiment_name).exists():
                     try:
-                        SixpackParticipant.objects.get_or_create(unique_attr=self.client_id, experiment_name=experiment_name, bucket=chosen_alternative)
+                        obj, created = SixpackParticipant.objects.get_or_create(unique_attr=self.client_id, experiment_name=experiment_name)
+                        if created:
+                            obj.bucket = chosen_alternative
+                            obj.save()
+
+                    # Catch the possible race condition from get_or_create().
+                    # TODO: Change the exception to IntegrityError when we add a unique constraint to SixpackParticipant.
                     except SixpackParticipant.MultipleObjectsReturned:
                         self._delete_duplicates(experiment_name)
 

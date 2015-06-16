@@ -88,58 +88,6 @@ class ParticipateTest(TestCase):
         self.assertEqual(alternative, 'FIRST')
         self.assertFalse(sp_mock.participate.called)
 
-    @patch('djsixpack.djsixpack.SixpackTest._get_session')
-    @patch('djsixpack.djsixpack.SixpackParticipant.objects.get_or_create')
-    def test_participate_returns_and_saves_local(self, mock_get_or_create, mock_get_session):
-        mock_user = Mock(pk=10)
-
-        class DefaultTest(SixpackTest):
-            alternatives = ('FIRST', 'SECOND')
-
-        class MockSession(object):
-            def participate(self, experiment_name, alternatives, force, prefetch):
-                return {
-                    'alternative': {'name': 'SECOND'}
-                }
-
-        mock_session = MockSession()
-        mock_get_session.return_value = mock_session
-
-        with patch.object(MockSession, 'participate') as mock_participate:
-            expt = DefaultTest(mock_user, local=True)
-            expt.participate(force='SECOND')
-            self.assertEqual(mock_participate.call_args[1]['force'], 'SECOND')
-            self.assertFalse(mock_participate.call_args[1]['prefetch'])
-
-        self.assertTrue(mock_get_or_create.called)
-
-    @patch('djsixpack.djsixpack.SixpackTest._get_session')
-    @patch('djsixpack.djsixpack.SixpackParticipant.objects.get_or_create')
-    def test_participate_returns_and_saves_local_no_sixpack(self, mock_get_or_create, mock_get_session):
-        mock_user = Mock(pk=10)
-
-        class DefaultTest(SixpackTest):
-            alternatives = ('FIRST', 'SECOND')
-
-        class MockSession(object):
-            def participate(self, experiment_name, alternatives, force, prefetch):
-                return {
-                    'alternative': {'name': 'SECOND'}
-                }
-
-        mock_session = MockSession()
-        mock_get_session.return_value = mock_session
-
-        with patch.object(MockSession, 'participate') as mock_participate:
-            expt = DefaultTest(mock_user, local=True, server=False)
-            expt.participate(force='SECOND')
-            self.assertEqual(mock_participate.call_args[0][0], expt._get_experiment_name())
-            self.assertEqual(mock_participate.call_args[0][1], expt.alternatives)
-            self.assertEqual(mock_participate.call_args[1]['force'], 'SECOND')
-            self.assertTrue(mock_participate.call_args[1]['prefetch'])
-
-        self.assertFalse(mock_get_or_create.objects.get_or_create.called)
-
     def test_participate_calls_library(self):
         mock_user = Mock(pk=10)
 
@@ -163,35 +111,70 @@ class ParticipateTest(TestCase):
             [call('default', ('FIRST', 'SECOND'), force=None, bucket=None, prefetch=False)]
         )
 
-        class ConvertTest(TestCase):
-
-            def test_convert_doesnt_call_library_when_no_host(self):
-                Mock(pk=10)
-
-        class DefaultTest(SixpackTest):
-            alternatives = ('FIRST', 'SECOND')
-
-        with patch('djsixpack.djsixpack.sixpack') as sp_mock:
-            with self.settings(SIXPACK_HOST=None):
-                expt = DefaultTest(mock_user)
-                expt.convert()
-
-        self.assertFalse(sp_mock.Session().convert.called)
-
-    def test_convert_calls_library(self):
+    def test_force_doesnt_record_participation(self):
         mock_user = Mock(pk=10)
 
         class DefaultTest(SixpackTest):
             alternatives = ('FIRST', 'SECOND')
+            local = True
 
-        with patch('djsixpack.djsixpack.sixpack') as sp_mock:
+        class MockSession(object):
+            def participate(self, experiment_name, alternatives, force, prefetch, bucket):
+                return {
+                    'alternative': {'name': 'SECOND'}
+                }
+        mock_session = MockSession()
+
+        with patch('djsixpack.djsixpack.sixpack'):
+            with self.settings(SIXPACK_HOST=None):
+                expt = DefaultTest(mock_user)
+                with patch.object(SixpackTest, '_get_session', return_value=mock_session):
+                    expt.participate(force='SECOND', bucket='THIRD')
+
+        self.assertFalse(SixpackParticipant.objects.all().exists())
+
+    def test_force_overrides_bucket(self):
+        mock_user = Mock(pk=10)
+
+        class DefaultTest(SixpackTest):
+            alternatives = ('FIRST', 'SECOND', 'THIRD')
+            local = True
+
+        class MockSession(object):
+            def participate(self, experiment_name, alternatives, force, prefetch, bucket):
+                return {
+                    'alternative': {'name': 'SECOND'}
+                }
+        mock_session = MockSession()
+
+        with patch('djsixpack.djsixpack.sixpack'):
+            with self.settings(SIXPACK_HOST=None):
+                expt = DefaultTest(mock_user)
+                with patch.object(SixpackTest, '_get_session', return_value=mock_session):
+                    bucket = expt.participate(force='SECOND', bucket='THIRD')
+
+        self.assertTrue(bucket, 'SECOND')
+
+    def test_participate_tracks_participation_locally(self):
+        mock_user = Mock(pk=10)
+
+        class DefaultTest(SixpackTest):
+            alternatives = ('FIRST', 'SECOND')
+            local = True
+
+        class MockSession(object):
+            def participate(self, experiment_name, alternatives, force, prefetch, bucket):
+                return {
+                    'alternative': {'name': 'SECOND'}
+                }
+
+        mock_session = MockSession()
+
+        with patch.object(SixpackTest, '_get_session', return_value=mock_session):
             expt = DefaultTest(mock_user)
-            expt.convert(kpi='cats')
+            expt.participate()
 
-        self.assertEqual(
-            sp_mock.Session().convert.call_args_list,
-            [call('default')]
-        )
+        self.assertTrue(SixpackParticipant.objects.filter(unique_attr=10, experiment_name='default').exists())
 
     def test_participate_is_called_twice_for_local_test(self):
         mock_user = Mock(pk=10)
@@ -203,7 +186,7 @@ class ParticipateTest(TestCase):
         class MockSession1(object):
             def participate(self, experiment_name, alternatives, force, prefetch, bucket):
                 return {
-                    'alternative': {'name': 'SECOND'}
+                    'alternative': {'name': 'FIRST'}
                 }
         mock_session1 = MockSession1()
 
@@ -218,11 +201,13 @@ class ParticipateTest(TestCase):
             with self.settings(SIXPACK_HOST=None):
                 expt = DefaultTest(mock_user)
                 with patch.object(SixpackTest, '_get_session', return_value=mock_session1):
-                    expt.participate(force='SECOND', bucket='SECOND')
+                    expt.participate(bucket='FIRST')
                 with patch.object(SixpackTest, '_get_session', return_value=mock_session2):
-                    expt.participate(force='FIRST', bucket='FIRST')
+                    bucket = expt.participate(bucket='SECOND')
 
         self.assertEquals(SixpackParticipant.objects.all().count(), 1)
+        self.assertEquals(bucket, 'FIRST')
+        self.assertEquals(SixpackParticipant.objects.all()[0].bucket, 'FIRST')
 
 
 class ExperimentNameTest(TestCase):
@@ -292,3 +277,34 @@ class GetParticipantBucketTest(TestCase):
 
         record_count = SixpackParticipant.objects.filter(experiment_name='get_bucket', unique_attr=10).count()
         self.assertEquals(record_count, 1)
+
+
+class ConvertTest(TestCase):
+
+    def test_convert_doesnt_call_library_when_no_host(self):
+        mock_user = Mock(pk=10)
+
+        class DefaultTest(SixpackTest):
+            alternatives = ('FIRST', 'SECOND')
+
+        with patch('djsixpack.djsixpack.sixpack') as sp_mock:
+            with self.settings(SIXPACK_HOST=None):
+                expt = DefaultTest(mock_user)
+                expt.convert()
+
+        self.assertFalse(sp_mock.Session().convert.called)
+
+    def test_convert_calls_library(self):
+        mock_user = Mock(pk=10)
+
+        class DefaultTest(SixpackTest):
+            alternatives = ('FIRST', 'SECOND')
+
+        with patch('djsixpack.djsixpack.sixpack') as sp_mock:
+            expt = DefaultTest(mock_user)
+            expt.convert(kpi='cats')
+
+        self.assertEqual(
+            sp_mock.Session().convert.call_args_list,
+            [call('default')]
+        )
