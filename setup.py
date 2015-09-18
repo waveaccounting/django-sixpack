@@ -15,7 +15,7 @@ setup(
     description='A django-friendly wrapper for sixpack-py',
     long_description=open('README.rst').read(),
     install_requires=install_reqs,
-    tests_require=install_reqs + ["mock==1.0.1", "factory-boy==1.1.3"],
+    tests_require=install_reqs + ["mock==1.0.1", "factory_boy==2.5.1"],
     test_suite='runtests.runtests',
     classifiers=(
         'Development Status :: 5 - Production/Stable',

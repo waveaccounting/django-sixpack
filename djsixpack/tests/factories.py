@@ -1,11 +1,11 @@
-from factory import Factory
+from factory import DjangoModelFactory
 
 from djsixpack.models import SixpackParticipant
 
 
-class SixpackParticipantFactory(Factory):
-
-    FACTORY_FOR = SixpackParticipant
+class SixpackParticipantFactory(DjangoModelFactory):
+    class Meta:
+        model = SixpackParticipant
 
     experiment_name = 'Science Experiment'
     unique_attr = 1
