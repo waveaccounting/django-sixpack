@@ -1,1 +1,1 @@
-__version__ = "1.1.6-wave"
+__version__ = "1.1.7-wave"
